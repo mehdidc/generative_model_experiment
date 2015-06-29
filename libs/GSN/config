@@ -1,0 +1,1 @@
+Namespace(K=2, N=4, act='tanh', annealing=0.995, batch_size=100, data_path='.', dataset='MNIST', hidden_add_noise_sigma=2, hidden_size=1500, input_salt_and_pepper=0.4, input_sampling=1, learning_rate=0.25, momentum=0.5, n_epoch=1000, noiseless_h1=1, test_model=0, vis_init=0)
