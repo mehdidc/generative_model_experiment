@@ -20,16 +20,16 @@ def build_digits():
 
 from lasagne.datasets.mnist import MNIST
 def build_mnist():
-    data = MNIST()
-    data.load('all')
+    data = MNIST('all')
+    data.load()
     X = data.X
     X = X.astype(np.float32)
     return X, (28, 28)
 
 from lasagne.datasets.cifar10 import Cifar10
 def build_cifar10():
-    data = Cifar10()
-    data.load('all')
+    data = Cifar10('train')
+    data.load()
     X = data.X
     X = X.astype(np.float32)
     return X, (3, 32, 32)
