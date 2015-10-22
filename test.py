@@ -10,23 +10,25 @@ from wrappers.gsn import GSN
 from wrappers.adv import Adversarial
 from wrappers.bernoulli import BernoulliMixture
 from datasets import datasets
-from lasagne.misc.plot_weights import grid_plot 
-from lasagne.easy import get_2d_square_image_view
+from lasagnekit.misc.plot_weights import grid_plot 
+from lasagnekit.easy import get_2d_square_image_view
 import gc
 from sklearn.utils import shuffle
-from hp_toolkit.hp import Param, parallelizer, minimize_fn_with_hyperopt, find_best_hp
+from hp_toolkit.hp import Param, parallelizer, minimize_fn_with_hyperopt, find_best_hp, find_all_hp
 from lightexperiments.light import Light
 from sklearn.cross_validation import train_test_split
 import os
-
+import uuid
 
 def launch(X, im):
     light = Light()
     
     # init
-    models = [VA, NADE, Adversarial]
-    max_evaluations_hp = 20
-    fast_test = True
+    models = [NADE]
+    max_evaluations_hp = 100
+    fast_test = False 
+    exp_id = uuid.uuid1()
+    light.set("custom_id", exp_id)
 
     # prepare
     X = shuffle(X)
@@ -37,7 +39,7 @@ def launch(X, im):
         )
         X = X[0:100]
     else:
-        default_params = dict()
+        default_params = dict(batch_size=128)
 
     eval_function = lambda model, X_v, y_v: model.get_log_likelihood(X_v)[0]
     X_train_full, X_test = train_test_split(X, test_size=0.25)
@@ -54,7 +56,7 @@ def launch(X, im):
         print("model : {0}".format(model.__name__))
 
         # find best  hyper-parameters on validation set
-        best_hp, best_score = find_best_hp(
+        all_hp, all_scores = find_all_hp(
                 model,
                 (minimize_fn_with_hyperopt),
                 X_train,
@@ -65,6 +67,20 @@ def launch(X, im):
                 default_params=default_params,
                 eval_function=eval_function
         )
+        for hp, score in zip(all_hp, all_scores):
+            hp_run = dict(
+                name=model.__name__,
+                experiment_id=exp_id,
+                tags=["model_hyperparameters"],
+                dataset=light.cur_experiment["dataset"],
+                score=score
+            )
+            hp_run.update(hp)
+            light.store_experiment(hp_run)
+
+        argmin = min(range(len(all_hp)), key=lambda i:all_scores[i])
+        best_hp, best_score = all_hp[argmin], all_scores[argmin]
+
         # then retrain the model on the full training set
         name = model.__name__
         best_hp.update(default_params)
@@ -96,14 +112,7 @@ def launch(X, im):
 
 if __name__ == "__main__":
     light = Light()
-    try:
-        light.launch()
-    except Exception:
-        light_connected = False
-    else:
-        print("Connected to mongo")
-        light_connected = True
-
+    light.launch()
     light.initials()
     light.tag("generative_model_experiment")
 
@@ -111,7 +120,7 @@ if __name__ == "__main__":
     ds = sys.argv[1] if len(sys.argv)==2 else "digits"
     light.set("dataset", ds)
     X, im = datasets.get(ds)()
-    launch(X, im)
+    hp_runs = launch(X, im)
     light.endings()
 
     report_dir = "{0}/report_{1}".format(os.getcwd(), ds)
@@ -120,11 +129,5 @@ if __name__ == "__main__":
     
     # create report here
 
-    if light_connected is True:
-        light.store_experiment()
-        light.close()
-    else:
-        import cPickle as pickle
-        import datetime
-        fd = open("report_{0}".format(datetime.datetime.now().isoformat()), "w")
-        pickle.dump(light.cur_experiment, fd)
+    light.store_experiment()
+    light.close()

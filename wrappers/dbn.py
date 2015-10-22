@@ -31,7 +31,6 @@ class DBN(Model):
     def transform(self, X):
         z_mean, z_sigma = self.model.encode(X)
         return z_mean
-
     
     def sample(self, nb_samples):
         pass

@@ -2,8 +2,9 @@ from hp_toolkit.hp import Param, default_eval_functions, Model
 import theano.tensor as T
 import numpy as np
 import batch_optimizer
-from lasagne import easy, updates, layers, nonlinearities
-from lasagne.generative import va
+from lasagne import updates, layers, nonlinearities
+from lasagnekit import easy
+from lasagnekit.generative import va
 from theano.sandbox import rng_mrg
 
 class MyBatchOptimizer(easy.BatchOptimizer):
@@ -20,10 +21,10 @@ class MyBatchOptimizer(easy.BatchOptimizer):
 class VA(Model):
 
     params = dict(
-            latent_dim = Param(initial=10, interval=[2, 5, 10, 20 , 30, 80, 100, 120, 160, 180], type='choice'),
-            nb_units_encoder = Param(initial=80, interval=[100, 200], type='int'),
+            latent_dim = Param(initial=10, interval=[2, 5, 10, 20 , 30, 80, 100, 120, 160, 180, 300, 500], type='choice'),
+            nb_units_encoder = Param(initial=80, interval=[100, 1000], type='int'),
             nb_layers_encoder = Param(initial=1, interval=[1, 4], type='int'),
-            nb_units_decoder = Param(initial=80, interval=[100, 200], type='int'),
+            nb_units_decoder = Param(initial=80, interval=[100, 1000], type='int'),
             nb_layers_decoder = Param(initial=1, interval=[1, 4], type='int'),
     )
     params.update(batch_optimizer.params)
@@ -31,7 +32,7 @@ class VA(Model):
     def build_model(self, X):
         # batch optimizer
         batch_optimizer = MyBatchOptimizer(max_nb_epochs=self.max_epochs,
-                                           optimization_procedure=(updates.rmsprop, {"learning_rate": self.learning_rate}),
+                optimization_procedure=(updates.rmsprop, {"learning_rate": self.learning_rate}),
                                            verbose=2,
                                            whole_dataset_in_device=True,
                                            #patience_nb_epochs=25,
@@ -89,7 +90,7 @@ class VA(Model):
         return z_mean
 
     def sample(self, nb_samples):
-        return self.model.sample(nb_samples)
+        return self.model.sample(nb_samples, only_means=True)
 
 if __name__ == "__main__":
     from datasets import datasets

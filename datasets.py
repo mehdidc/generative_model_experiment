@@ -18,7 +18,7 @@ def build_digits():
     X = X.astype(np.float32) / 16.
     return X, digits.images.shape[1:]
 
-from lasagne.datasets.mnist import MNIST
+from lasagnekit.datasets.mnist import MNIST
 def build_mnist():
     data = MNIST('all')
     data.load()
@@ -26,7 +26,7 @@ def build_mnist():
     X = X.astype(np.float32)
     return X, (28, 28)
 
-from lasagne.datasets.cifar10 import Cifar10
+from lasagnekit.datasets.cifar10 import Cifar10
 def build_cifar10():
     data = Cifar10('train')
     data.load()
@@ -34,9 +34,18 @@ def build_cifar10():
     X = X.astype(np.float32)
     return X, (3, 32, 32)
 
+from lasagnekit.datasets.textures import Textures
+def build_textures():
+    data = Textures()
+    data.load()
+    X = data.X
+    X = X.astype(np.float32) / 255.
+    return X, data.img_dim
+
 datasets = dict(
     lfw=build_lfw,
     digits=build_digits,
     mnist=build_mnist,
-    cifar10=build_cifar10
+    cifar10=build_cifar10,
+    textures=build_textures
 )

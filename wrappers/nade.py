@@ -29,7 +29,7 @@ import gc
 class NADE(Model):
 
     params = dict(
-        nb_units = Param(initial=100, interval=[100, 200], type='int'),
+        nb_units = Param(initial=100, interval=[100, 300], type='int'),
         nb_layers = Param(initial=1, interval=[1, 4], type='int'),
     )
     params.update(batch_optimizer.params)
@@ -57,16 +57,16 @@ class NADE(Model):
         #    masks_dataset = Data.BigDataset(masks_route + ".hdf5", "masks/.*", "masks")
         #except:
 
-        masks_filename = "ds" + ".masks"
-        masks_route = os.path.join(os.environ["DATASETSPATH"], masks_filename)
-        create_dropout_masks(os.environ["DATASETSPATH"], masks_filename, n_visible, ks=1000)
-        masks_dataset = Data.BigDataset(masks_route + ".hdf5", "masks/.*", "masks")
+        #masks_filename = "ds" + ".masks"
+        #masks_route = os.path.join(os.environ["DATASETSPATH"], masks_filename)
+        #create_dropout_masks(os.environ["DATASETSPATH"], masks_filename, n_visible, ks=1000)
+        #masks_dataset = Data.BigDataset(masks_route + ".hdf5", "masks/.*", "masks")
 
 
         nade_class = NADE_orig.OrderlessBernoulliNADE
         nade = nade_class(n_visible, self.nb_units, self.nb_layers, nonlinearity="RLU")
 
-        loss_function = "sym_masked_neg_loglikelihood_gradient"
+        loss_function = "sym_neg_loglikelihood_gradient"
         #validation_loss_measurement = Instrumentation.Function("validation_loss", lambda ins:-ins.model.estimate_average_loglikelihood_for_dataset_using_masks(validation_dataset, masks_dataset, loops=options.validation_loops)) # TODO
 
         nade.initialize_parameters_from_dataset(X)
@@ -75,7 +75,7 @@ class NADE(Model):
         np.random.shuffle(ordering)
 
         trainer = Optimization.MomentumSGD(nade, nade.__getattribute__(loss_function))
-        trainer.set_datasets([X, masks_dataset])
+        trainer.set_datasets([X])
         trainer.set_learning_rate(self.learning_rate)
         trainer.set_datapoints_as_columns(True)
         #trainer.add_controller(TrainingController.AdaptiveLearningRate(options.lr, 0, epochs=options.epochs))
