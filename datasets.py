@@ -39,7 +39,6 @@ def build_textures():
     data = Textures()
     data.load()
     X = data.X
-    X = X.astype(np.float32) / 255.
     return X, data.img_dim
 
 datasets = dict(
