@@ -7,6 +7,7 @@ from nade import NADE
 from gsn import GSN
 from adv import Adversarial
 from bernoulli import BernoulliMixture
+from rbm import RBM
 
 Models = dict((klass.__name__, klass)
-              for klass in [NADE, DBN, VA, GSN, Adversarial, BernoulliMixture])
+              for klass in [NADE, DBN, VA, GSN, Adversarial, BernoulliMixture, RBM])

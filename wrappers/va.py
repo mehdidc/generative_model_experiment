@@ -35,7 +35,7 @@ class VA(Model):
         # batch optimizer
         batch_optimizer = MyBatchOptimizer(max_nb_epochs=self.max_epochs,
                 optimization_procedure=(updates.adam, {"learning_rate": self.learning_rate}),
-                                           verbose=2,
+                                           verbose=1,
                                            whole_dataset_in_device=True,
                                            #patience_nb_epochs=25,
                                            #patience_stat="lb_train",

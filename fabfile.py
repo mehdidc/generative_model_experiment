@@ -50,6 +50,7 @@ def train_one(model_name, dataset_name,
     model.image_shape = imshape
 
     if out_model is not None:
+        print(model.model.__dict__)
         fd = open(out_model, "w")
         pickle.dump(model, fd)
         fd.close()
