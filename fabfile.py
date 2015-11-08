@@ -17,10 +17,10 @@ from lasagnekit.misc.plot_weights import grid_plot
 
 from wrappers.discriminator import Discriminator, build_discriminator_data
 
+
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 
 def train_one(model_name, dataset_name,
@@ -82,14 +82,19 @@ def train_one(model_name, dataset_name,
 
 
 def compare():
-    model1 = train_one("BernoulliMixture", "digits",
+    dataset = "mnist"
+    model2 = train_one("Truth", dataset,
                        random=False)
-    model2 = train_one("Truth", "digits",
+    model1 = train_one("VA", dataset,
+                       #fast_test="True",
                        random=False)
 
     models = [model1, model2]
+
     X_train, y_train = build_discriminator_data(models, samples_per_model=10000)
+    X_train, y_train = shuffle(X_train, y_train)
     X_valid, y_valid = build_discriminator_data(models, samples_per_model=10000)
+    X_valid, y_valid = shuffle(X_valid, y_valid)
 
     discriminator = Discriminator(kind="fully")
     discriminator.fit(X_train, y_train,
