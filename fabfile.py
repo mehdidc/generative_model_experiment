@@ -1,12 +1,11 @@
 import pickle
-
 import matplotlib as mpl
-mpl.use('Agg')
+mpl.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 from datasets import datasets
 from wrappers import Models
-from hp_toolkit.hp import instantiate_random_model, instantiate_default_model #NOQA
+from hp_toolkit.hp import instantiate_random_model, instantiate_default_model  # NOQA
 
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
@@ -15,6 +14,13 @@ import numpy as np
 
 
 from lasagnekit.misc.plot_weights import grid_plot
+
+from wrappers.discriminator import Discriminator, build_discriminator_data
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 
 def train_one(model_name, dataset_name,
@@ -25,7 +31,11 @@ def train_one(model_name, dataset_name,
               fast_test=False):
     seed = 1234
     np.random.seed(seed)
-    fast_test = {"True": True, "False": False}[fast_test]
+
+    if fast_test == "True":
+        fast_test = True
+    else:
+        fast_test = False
     np.random.seed(seed)
     ds = datasets.get(dataset_name)
     if ds is None:
@@ -68,6 +78,22 @@ def train_one(model_name, dataset_name,
         fd = open(out_model, "w")
         pickle.dump(model, fd)
         fd.close()
+    return model
+
+
+def compare():
+    model1 = train_one("BernoulliMixture", "digits",
+                       random=False)
+    model2 = train_one("Truth", "digits",
+                       random=False)
+
+    models = [model1, model2]
+    X_train, y_train = build_discriminator_data(models, samples_per_model=10000)
+    X_valid, y_valid = build_discriminator_data(models, samples_per_model=10000)
+
+    discriminator = Discriminator(kind="fully")
+    discriminator.fit(X_train, y_train,
+                      X_valid=X_valid, y_valid=y_valid)
 
 
 def sample_from_pickled_model(model_filename, nb_samples=100,
