@@ -21,24 +21,39 @@ def train_one(model_name, dataset_name,
               random=False,
               nb_samples=100, seed=1234,
               test_size=0.25,
-              out_model=None):
-
+              out_model=None,
+              fast_test=False):
+    seed = 1234
     np.random.seed(seed)
+    fast_test = {"True": True, "False": False}[fast_test]
+    np.random.seed(seed)
+    ds = datasets.get(dataset_name)
+    if ds is None:
+        raise Exception("cant find the dataset {}".format(dataset_name))
+    X, imshape = ds()
 
-    X, imshape = datasets.get(dataset_name)()
     X = shuffle(X)
     X_train, X_test = train_test_split(X, test_size=test_size)
 
     model_class = Models[model_name]
-    if random is True:
-        model = instantiate_random_model(model_class)
+    if fast_test is True:
+        params = dict()
+        params["max_epochs"] = 1
     else:
-        model = instantiate_default_model(model_class)
+        params = dict()
+
+    if random is True:
+        model = instantiate_random_model(model_class, default_params=params)
+    else:
+        model = instantiate_default_model(model_class, default_params=params)
 
     X_train_full, X_test = train_test_split(X, test_size=0.25)
     X_train, X_valid = train_test_split(X_train_full, test_size=0.25)
 
-    model.fit(X)
+    try:
+        model.fit(X)
+    except KeyboardInterrupt:
+        print("Keyboard interrupt...")
 
     ll, ll_std = model.get_log_likelihood(X_test)
     nb_params = model.get_nb_params()
@@ -50,7 +65,6 @@ def train_one(model_name, dataset_name,
     model.image_shape = imshape
 
     if out_model is not None:
-        print(model.model.__dict__)
         fd = open(out_model, "w")
         pickle.dump(model, fd)
         fd.close()
@@ -68,7 +82,7 @@ def sample_from_pickled_model(model_filename, nb_samples=100,
 
 def sample_from_model(model, shape, nb_samples=100, filename="out.png"):
     plt.clf()
-    s = model.sample(nb_samples)
+    s = model.sample(nb_samples, only_means=True)
     s = s.reshape((s.shape[0], shape[0], shape[1]))
     grid_plot(s, imshow_options={"cmap": "gray"})
     plt.savefig(filename)

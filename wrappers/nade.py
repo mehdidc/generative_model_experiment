@@ -66,7 +66,9 @@ class NADE(Model):
         nade_class = NADE_orig.OrderlessBernoulliNADE
         nade = nade_class(n_visible, self.nb_units, self.nb_layers, nonlinearity="RLU")
 
-        loss_function = "sym_neg_loglikelihood_gradient"
+        #loss_function = "sym_neg_loglikelihood_gradient"
+        loss_function = "sym_logdensity"
+
         #validation_loss_measurement = Instrumentation.Function("validation_loss", lambda ins:-ins.model.estimate_average_loglikelihood_for_dataset_using_masks(validation_dataset, masks_dataset, loops=options.validation_loops)) # TODO
 
         nade.initialize_parameters_from_dataset(X)
@@ -111,6 +113,6 @@ class NADE(Model):
 
     def get_nb_params(self):
         return sum(np.prod(param.get_value().shape) for param in self.model.parameters.values() if param.__class__.__name__=="TensorParameter")
-    
+
     def sample(self, nb_samples):
         return self.model.sample(nb_samples).T

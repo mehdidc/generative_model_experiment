@@ -114,13 +114,31 @@ def rbm_annealed_importance_sampling_one_run_(hidbiases, visbiases, vishid,
             h_energy = np.concatenate((h_energy[:, None],
                                       np.zeros((num_hids, 1))), axis=1)
             log_energy = (logsumexp(h_energy, axis=1).sum() +
-                          bb_ * np.dot(v, visbias) +
+                          bb_ * np.dot(v, visbiases) +
                           num_hids * np.log(2))
             log_energies.append(log_energy)
         log_w.append(log_energies[1] - log_energies[0])
 
     log_z_ratio = np.sum(log_w)
     return log_z_ratio
+
+
+def rbm_log_energy(V, hidbiases, visbiases, vishid):
+    """
+    This computes the log energy of a set of examples, which
+    is the log of the unnormalized probabiltiy density of
+    an RBM
+    """
+    h_energy = np.dot(V, vishid) + hidbiases
+    h_energy = np.concatenate((h_energy[:, :, None],
+                               np.zeros_like(h_energy[:, :, None])), axis=2)
+    log_energy_h_part = logsumexp(h_energy, axis=2).sum(axis=1)
+
+    v_energy = np.dot(V, visbiases)
+    log_energy_v_part = v_energy
+
+    log_energy = log_energy_h_part + log_energy_v_part
+    return log_energy
 
 
 def rbm_partition_function_exact(hidbias, visbias, vishid):

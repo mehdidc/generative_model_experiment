@@ -12,11 +12,24 @@ class MyBatchOptimizer(easy.BatchOptimizer):
 
     def iter_update(self, epoch, nb_batches, iter_update_batch):
         status = super(MyBatchOptimizer, self).iter_update(epoch, nb_batches, iter_update_batch)
-        status["lb_train"] = self.model.get_likelihood_lower_bound(self.model.X_train)
-        status["ll_train"] = self.model.log_likelihood_approximation_function(self.model.X_train)[0]
+
+        lb_train = self.model.get_likelihood_lower_bound(self.model.X_train)
+        status["lb_train"] = lb_train.mean()
+        status["lb_train_std"] = lb_train.std()
+
+        ll_train = self.model.log_likelihood_approximation_function(self.model.X_train)
+        status["ll_train"] = ll_train.mean()
+        status["ll_train_std"] = ll_train.std()
+
         if self.model.X_valid is not None:
-            status["lb_valid"] = self.model.get_likelihood_lower_bound(self.model.X_valid)
-            status["ll_valid"] = self.model.log_likelihood_approximation_function(self.model.X_valid)
+            lb_valid = self.model.get_likelihood_lower_bound(self.model.X_valid)
+            status["lb_valid"] = lb_valid.mean()
+            status["lb_valid_std"] = lb_valid.std()
+
+            ll_valid = self.model.log_likelihood_approximation_function(self.model.X_valid)
+            status["ll_valid"] = ll_valid.mean()
+            status["ll_valid_std"] = ll_valid.std()
+
         return status
 
 
@@ -82,7 +95,9 @@ class VA(Model):
         self.model.fit(X)
 
     def get_log_likelihood(self, X):
-        mean, std = (self.model.log_likelihood_approximation_function(X))
+        ll = (self.model.log_likelihood_approximation_function(X))
+        mean = ll.mean()
+        std = ll.std()
         return float(mean), float(std)
 
     def get_nb_params(self):

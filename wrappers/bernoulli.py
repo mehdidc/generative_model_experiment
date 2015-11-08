@@ -107,9 +107,8 @@ class BernoulliMixture(Model):
         log_props = np.log(props_)
         log_L = ((X_ * np.log(theta_) +
                  (1 - X_) * (np.log(1 - theta_))).sum(axis=2))
-        ll = logsumexp(log_L + log_props, axis=0)
-        ll = ll.mean()
-        return -ll, 0
+        ll = -logsumexp(log_L + log_props, axis=0)
+        return ll.mean(), ll.std()
 
     def sample(self, nb_samples, only_means=True):
         distrib = rv_discrete(values=(range(len(self.props)), self.props))
