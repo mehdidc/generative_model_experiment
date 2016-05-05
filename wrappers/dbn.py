@@ -24,13 +24,13 @@ class DBN(Model):
 
     def get_log_likelihood(self, X):
         return -self.model.estimate_log_likelihood(X.T), 0
-    
+
     def get_nb_params(self):
         return sum(np.prod(self.model[i].W.shape) + np.prod(self.model[i].b.shape) for i in range(self.nb_layers + 1))
 
     def transform(self, X):
         z_mean, z_sigma = self.model.encode(X)
         return z_mean
-    
-    def sample(self, nb_samples):
+
+    def sample(self, nb_samples, only_means=True):
         pass

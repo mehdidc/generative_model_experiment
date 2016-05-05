@@ -83,6 +83,8 @@ class SimpleNADE(Model):
         if X_valid is not None:
             self.batch_optimizer.patience_stat = "ll_valid"
         self.model.fit(X=X)
+        self.model.X_train = None
+        self.model.X_valid = None
 
     def get_log_likelihood(self, X):
         ll = -self.model.log_likelihood(X)

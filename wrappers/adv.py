@@ -34,7 +34,7 @@ class Adversarial(Model):
             X_valid_ds = DenseDesignMatrix(X=X_valid)
         else:
             X_valid_ds = None
-        
+
         # monitor
         monitoring_dataset=dict(
             train=X_ds,
@@ -45,12 +45,12 @@ class Adversarial(Model):
             )
 
         # Algorithm
-        trainer = sgd.SGD(learning_rate=self.learning_rate, 
-                          batch_size=self.batch_size, 
+        trainer = sgd.SGD(learning_rate=self.learning_rate,
+                          batch_size=self.batch_size,
                           termination_criterion=EpochCounter(self.max_epochs),
                           cost=adversarial.AdversaryCost2(
                                         scale_grads=0,
-                                        discriminator_default_input_scale=2.,
+                                        discriminator_default_input_scale=1.,
                                         discriminator_input_scales=dict(h0=1.25)
                            ),
         )
@@ -88,7 +88,7 @@ class Adversarial(Model):
             if not trainer.continue_learning(model):
                 break
         self.model = model
-        
+
         # preparing parzen density estimation
         samples = self.sample(10000)
         sigma = 2.
@@ -98,9 +98,9 @@ class Adversarial(Model):
         ll = parzen_ll.get_nll(X, self.parzen, batch_size=self.batch_size)
         se = ll.std() / np.sqrt(X.shape[0])
         return -ll.mean(), se
-    
+
     def get_nb_params(self):
         return sum(np.prod(param.get_value().shape) for param in self.model.get_params())
 
-    def sample(self, nb_samples):
+    def sample(self, nb_samples, only_means=True):
         return self.model.generator.sample(nb_samples).eval()
